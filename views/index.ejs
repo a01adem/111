@@ -183,16 +183,26 @@
 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarBtn = document.getElementById('openSidebar');
-        const closeSidebarBtn = document.getElementById('closeSidebar');
 
-        openSidebarBtn.addEventListener('click', () => {
-            sidebar.classList.remove('-translate-x-full');
+document.addEventListener('DOMContentLoaded', function() {
+
+const loader = document.getElementById('page-loader');
+setTimeout(() => {
+    loader.classList.replace('opacity-100', 'opacity-0'); // Fade out
+    setTimeout(() => {
+        loader.style.display = 'none'; // Remove from flow
+    }, 200); // Wait for the fade-out transition to finish
+}, 1000); // Show loader for 1.5 seconds
+
+
+
+});
+
+        document.getElementById('openSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').style.transform = 'translateX(0)';
         });
-
-        closeSidebarBtn.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').style.transform = 'translateX(-100%)';
         });
     </script>
 </body>
