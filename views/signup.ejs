@@ -20,6 +20,37 @@
         .animate-spin {
             animation: spin 1s linear infinite;
         }
+        /* Styles for password requirements */
+        .password-requirements {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 0.5rem;
+        }
+        .password-requirements li {
+            display: flex;
+            align-items: center;
+            color: #f87171; /* Light red for unmet requirements */
+            font-size: 0.875rem; /* Small font size */
+            margin-bottom: 0.25rem;
+        }
+        .password-requirements li.valid {
+            color: #34D399; /* Green for met requirements */
+        }
+        .password-requirements li i {
+            margin-right: 0.5rem;
+        }
+        /* Styles for eye icon */
+        .toggle-password {
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a1a1aa; /* Gray color */
+        }
+        .toggle-password:hover {
+            color: #6366f1; /* Blue on hover */
+        }
     </style>
     <script>
         tailwind.config = {
@@ -55,28 +86,46 @@
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
                     <div class="relative">
                         <i class="ri-user-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="name" name="name" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="John Doe" required>
+                        <input type="text" id="name" name="name" class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="John Doe" required>
                     </div>
                 </div>
                 <div class="mb-6">
                     <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                     <div class="relative">
                         <i class="ri-mail-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="email" id="email" name="email" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="you@example.com" required>
+                        <input type="email" id="email" name="email" class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="you@example.com" required>
                     </div>
                 </div>
-                <div class="mb-6">
+                <div class="mb-6 relative">
                     <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
                     <div class="relative">
                         <i class="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="password" id="password" name="password" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="••••••••" required>
+                        <input type="password" id="password" name="password" class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="••••••••" required>
+                        <i class="ri-eye-line toggle-password" id="toggle-password"></i>
                     </div>
+                    <!-- Password Requirements List -->
+                    <ul class="password-requirements" id="password-requirements">
+                        <li id="length" class="invalid">
+                            <i class="ri-close-line"></i> At least 8 characters
+                        </li>
+                        <li id="uppercase" class="invalid">
+                            <i class="ri-close-line"></i> Contains at least one uppercase letter
+                        </li>
+                        <li id="number" class="invalid">
+                            <i class="ri-close-line"></i> Contains at least one number
+                        </li>
+                    </ul>
                 </div>
-                <div class="mb-6">
+                <div class="mb-6 relative">
                     <label for="confirm-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
                     <div class="relative">
                         <i class="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="password" id="confirm-password" name="confirm-password" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="••••••••" required>
+                        <input type="password" id="confirm-password" name="confirm-password" class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="••••••••" required>
+                        <i class="ri-eye-line toggle-password" id="toggle-confirm-password"></i>
+                    </div>
+                    <!-- Confirm Password Error Message -->
+                    <div id="confirm-password-error" class="hidden text-red-500 text-sm mt-1">
+                        Passwords do not match.
                     </div>
                 </div>
                 <div class="flex items-center mb-6">
@@ -98,52 +147,162 @@
     </div>
 
     <script>
-        // Hide loader after 1.5 seconds
+        // Function to validate password
+        function validatePassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password)
+            };
+            return requirements;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const loader = document.getElementById('page-loader');
             setTimeout(() => {
                 loader.classList.replace('opacity-100', 'opacity-0'); // Fade out
                 setTimeout(() => {
                     loader.style.display = 'none'; // Remove from flow
-                }, 200); // Wait for the fade-out transition to finish
-            }, 1000); // Show loader for 1.5 seconds
-            
+                }, 500); // Wait for the fade-out transition to finish
+            }, 1500); // Show loader for 1.5 seconds
+
             const form = document.getElementById('signup-form');
             const submitBtn = document.getElementById('submit-btn');
             const btnText = document.getElementById('btn-text');
             const spinner = document.getElementById('spinner');
-    
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const confirmPasswordError = document.getElementById('confirm-password-error');
+
+            const passwordRequirements = {
+                length: document.getElementById('length'),
+                uppercase: document.getElementById('uppercase'),
+                number: document.getElementById('number')
+            };
+
+            // Toggle password visibility
+            const togglePassword = document.getElementById('toggle-password');
+            const toggleConfirmPassword = document.getElementById('toggle-confirm-password');
+
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.classList.toggle('ri-eye-line');
+                this.classList.toggle('ri-eye-off-line');
+            });
+
+            toggleConfirmPassword.addEventListener('click', function() {
+                const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPasswordInput.setAttribute('type', type);
+                this.classList.toggle('ri-eye-line');
+                this.classList.toggle('ri-eye-off-line');
+            });
+
+            passwordInput.addEventListener('input', function() {
+                const password = passwordInput.value;
+                const validation = validatePassword(password);
+
+                // Update the password requirements list
+                for (const key in validation) {
+                    if (validation[key]) {
+                        passwordRequirements[key].classList.add('valid');
+                        passwordRequirements[key].classList.remove('invalid');
+                        passwordRequirements[key].innerHTML = `<i class="ri-check-line"></i> ${passwordRequirements[key].textContent.trim()}`;
+                    } else {
+                        passwordRequirements[key].classList.remove('valid');
+                        passwordRequirements[key].classList.add('invalid');
+                        passwordRequirements[key].innerHTML = `<i class="ri-close-line"></i> ${passwordRequirements[key].textContent.trim()}`;
+                    }
+                }
+
+                // Check if confirm password matches
+                const confirmPassword = confirmPasswordInput.value;
+                if (confirmPassword && password !== confirmPassword) {
+                    confirmPasswordError.classList.remove('hidden');
+                } else {
+                    confirmPasswordError.classList.add('hidden');
+                }
+            });
+
+            confirmPasswordInput.addEventListener('input', function() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                if (password !== confirmPassword) {
+                    confirmPasswordError.classList.remove('hidden');
+                } else {
+                    confirmPasswordError.classList.add('hidden');
+                }
+            });
+
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm-password').value;
+
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                const validation = validatePassword(password);
+                let valid = true;
+
+                // Validate all password requirements
+                for (const key in validation) {
+                    if (!validation[key]) {
+                        valid = false;
+                        passwordRequirements[key].classList.remove('valid');
+                        passwordRequirements[key].classList.add('invalid');
+                        passwordRequirements[key].innerHTML = `<i class="ri-close-line"></i> ${passwordRequirements[key].textContent.trim()}`;
+                    }
+                }
+
+                // Validate password match
                 if (password !== confirmPassword) {
-                    alert('Passwords do not match!');
+                    confirmPasswordError.classList.remove('hidden');
+                    valid = false;
+                } else {
+                    confirmPasswordError.classList.add('hidden');
+                }
+
+                if (!valid) {
                     return;
                 }
-    
+
                 // Show spinner and disable button
                 btnText.textContent = 'Creating Account...';
                 spinner.classList.remove('hidden');
                 submitBtn.disabled = true;
-    
+
                 // Simulate API call
                 setTimeout(() => {
                     // Hide spinner and enable button
                     btnText.textContent = 'Create Account';
                     spinner.classList.add('hidden');
                     submitBtn.disabled = false;
-    
+
                     // Here you would typically send the form data to your server
                     console.log('Form submitted successfully');
                     alert('Account created successfully!');
-    
-                    // Optionally, reset the form
+
+                    // Reset the form
                     form.reset();
+
+                    // Reset the password requirements list
+                    for (const key in passwordRequirements) {
+                        passwordRequirements[key].classList.remove('valid');
+                        passwordRequirements[key].classList.add('invalid');
+                        passwordRequirements[key].innerHTML = `<i class="ri-close-line"></i> ${passwordRequirements[key].textContent.trim()}`;
+                    }
+
+                    // Reset confirm password error
+                    confirmPasswordError.classList.add('hidden');
+
+                    // Reset password visibility
+                    passwordInput.setAttribute('type', 'password');
+                    confirmPasswordInput.setAttribute('type', 'password');
+                    togglePassword.classList.remove('ri-eye-off-line');
+                    togglePassword.classList.add('ri-eye-line');
+                    toggleConfirmPassword.classList.remove('ri-eye-off-line');
+                    toggleConfirmPassword.classList.add('ri-eye-line');
                 }, 2000); // Simulated delay of 2 seconds
             });
         });
     </script>
 </body>
-
 </html>
